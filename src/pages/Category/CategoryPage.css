@@ -1,0 +1,126 @@
+.category-page {
+  min-height: calc(100vh - 72px);
+
+  padding: 80px 0;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(115, 87, 255, 0.12),
+      transparent 35%
+    ),
+    var(--color-bg);
+}
+
+.category-page-container {
+  width: min(100% - 40px, var(--container-width));
+  margin: 0 auto;
+}
+
+.category-back {
+  display: inline-block;
+
+  margin-bottom: 50px;
+
+  color: var(--color-text-secondary);
+  text-decoration: none;
+
+  transition: color var(--transition);
+}
+
+.category-back:hover {
+  color: var(--color-primary-light);
+}
+
+.category-eyebrow {
+  display: block;
+
+  margin-bottom: 14px;
+
+  color: var(--color-primary-light);
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+}
+
+.category-page h1 {
+  margin-bottom: 16px;
+
+  font-size: clamp(42px, 6vw, 72px);
+  letter-spacing: -3px;
+}
+
+.category-intro {
+  color: var(--color-text-secondary);
+
+  font-size: 17px;
+}
+
+.category-products-placeholder {
+  margin-top: 60px;
+  padding: 50px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 600px) {
+  .category-page {
+    padding: 50px 0;
+  }
+
+  .category-page-container {
+    width: min(100% - 24px, var(--container-width));
+  }
+
+  .category-page h1 {
+    letter-spacing: -2px;
+  }
+
+  .category-products-placeholder {
+    padding: 30px 20px;
+  }
+}
+
+.category-products-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 22px;
+
+  margin-top: 60px;
+}
+
+.category-status {
+  margin-top: 60px;
+  padding: 40px;
+
+  text-align: center;
+
+  color: var(--color-text-secondary);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+}
+
+@media (max-width: 900px) {
+  .category-products-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .category-products-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,34 @@
+:root {
+  /* Fundos */
+  --color-bg: #07070b;
+  --color-bg-secondary: #0d0d14;
+  --color-surface: #12121c;
+
+  /* Identidade Maia's Tech */
+  --color-primary: #4c53af;
+  --color-primary-light: #747cff;
+  --color-neon: #7357ff;
+  --color-blue: #397dff;
+
+  /* Textos */
+  --color-text: #f5f7ff;
+  --color-text-secondary: #9da3b4;
+
+  /* Bordas */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-highlight: rgba(115, 87, 255, 0.35);
+
+  /* Efeitos */
+  --glow-primary: 0 0 30px rgba(115, 87, 255, 0.22);
+
+  /* Layout */
+  --container-width: 1200px;
+
+  /* Cantos */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+
+  /* Transições */
+  --transition: 200ms ease;
+}
