@@ -24,6 +24,7 @@ import ResetPasswordPage from "./pages/Admin/ResetPasswordPage"
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute"
 import ChatWidget from "./components/Chat/ChatWidget"
 import Footer from "./components/Footer/Footer"
+import ScrollToTop from "./components/ScrollToTop/ScrollToTop"
 
 function App() {
   const location = useLocation()
@@ -35,6 +36,8 @@ function App() {
 
   return (
     <>
+      <ScrollToTop />
+
       <Routes>
         <Route
           path="/"
