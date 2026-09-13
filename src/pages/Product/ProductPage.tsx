@@ -147,7 +147,7 @@ function ProductPage() {
                 )}
 
               <button className="product-chat-button">
-                Conversar sobre este produto
+                Duvidas? Clica no chat ou chama no WhatsApp!
               </button>
 
             </div>
