@@ -92,11 +92,18 @@
 }
 
 .product-page-description {
-  margin-bottom: 35px;
-
-  color: var(--color-text-secondary);
-
+  margin: 0;
+  padding-left: 22px;
+  color: #aeb0bf;
   line-height: 1.7;
+}
+
+.product-page-description li {
+  margin-bottom: 6px;
+}
+
+.product-page-description li::marker {
+  color: #8b5cf6;
 }
 
 .product-specs {

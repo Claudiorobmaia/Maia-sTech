@@ -120,10 +120,18 @@ function ProductPage() {
               </div>
 
               {product.description && (
-                <p className="product-page-description">
-                  {product.description}
-                </p>
-              )}
+  <ul className="product-page-description">
+    {product.description
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line, index) => (
+        <li key={index}>
+          {line.replace(/^[•\-]\s*/, "")}
+        </li>
+      ))}
+  </ul>
+)}
 
               {product.product_specs &&
                 product.product_specs.length > 0 && (
