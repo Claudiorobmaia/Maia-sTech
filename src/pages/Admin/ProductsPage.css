@@ -244,3 +244,30 @@
     grid-template-columns: 1fr;
   }
 }
+
+.admin-products-search {
+  margin: 24px 0;
+}
+
+.admin-products-search input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  font-size: 15px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.admin-products-search input::placeholder {
+  color: #8f90a6;
+}
+
+.admin-products-search input:focus {
+  border-color: #6d5dfc;
+  background: rgba(255, 255, 255, 0.06);
+}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+
 import { useNavigate } from "react-router-dom"
 
 import { supabase } from "../../services/supabase"
@@ -13,7 +14,6 @@ type AdminProduct = {
   condition: string
   active: boolean
   category_id: number | null
-
   product_images: {
     image_url: string
     position: number
@@ -25,6 +25,7 @@ function ProductsPage() {
 
   const [products, setProducts] = useState<AdminProduct[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
     loadProducts()
@@ -66,7 +67,6 @@ function ProductsPage() {
     const normalizedProducts = (data ?? []).map(
       (product) => ({
         ...product,
-
         product_images: [
           ...(product.product_images ?? []),
         ].sort(
@@ -108,13 +108,14 @@ function ProductsPage() {
       currentProducts.map((product) =>
         product.id === productId
           ? {
-            ...product,
-            active: !currentStatus,
-          }
+              ...product,
+              active: !currentStatus,
+            }
           : product,
       ),
     )
   }
+
   async function deleteProduct(
     productId: number,
     productName: string,
@@ -141,6 +142,7 @@ function ProductsPage() {
       alert(
         "Não foi possível preparar a exclusão do produto.",
       )
+
       return
     }
 
@@ -166,6 +168,7 @@ function ProductsPage() {
         alert(
           "Não foi possível excluir as fotos do produto.",
         )
+
         return
       }
     }
@@ -185,6 +188,7 @@ function ProductsPage() {
       alert(
         "Não foi possível excluir o produto.",
       )
+
       return
     }
 
@@ -206,12 +210,34 @@ function ProductsPage() {
     ).format(value)
   }
 
+  const filteredProducts = products.filter(
+    (product) => {
+      const term = searchTerm
+        .trim()
+        .toLowerCase()
+
+      if (!term) {
+        return true
+      }
+
+      return (
+        product.name
+          .toLowerCase()
+          .includes(term) ||
+        product.slug
+          .toLowerCase()
+          .includes(term) ||
+        product.condition
+          .toLowerCase()
+          .includes(term)
+      )
+    },
+  )
+
   return (
     <main className="admin-products-page">
       <div className="admin-products-container">
-
         <div className="admin-products-top">
-
           <div>
             <span>
               MAIA'S TECH ADMIN
@@ -234,7 +260,6 @@ function ProductsPage() {
           >
             + Novo produto
           </button>
-
         </div>
 
         <button
@@ -246,6 +271,17 @@ function ProductsPage() {
           ← Voltar ao painel
         </button>
 
+        <div className="admin-products-search">
+          <input
+            type="search"
+            placeholder="Buscar produto por nome, slug ou condição..."
+            value={searchTerm}
+            onChange={(event) =>
+              setSearchTerm(event.target.value)
+            }
+          />
+        </div>
+
         {loading ? (
           <div className="admin-products-status">
             Carregando produtos...
@@ -254,10 +290,13 @@ function ProductsPage() {
           <div className="admin-products-status">
             Nenhum produto cadastrado.
           </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="admin-products-status">
+            Nenhum produto encontrado.
+          </div>
         ) : (
           <div className="admin-products-grid">
-
-            {products.map((product) => {
+            {filteredProducts.map((product) => {
               const mainImage =
                 product.product_images?.[0]
 
@@ -266,9 +305,7 @@ function ProductsPage() {
                   className="admin-product-card"
                   key={product.id}
                 >
-
                   <div className="admin-product-image">
-
                     {mainImage ? (
                       <img
                         src={
@@ -293,11 +330,9 @@ function ProductsPage() {
                         ? "ATIVO"
                         : "INATIVO"}
                     </span>
-
                   </div>
 
                   <div className="admin-product-content">
-
                     <span className="admin-product-condition">
                       {product.condition}
                     </span>
@@ -313,7 +348,6 @@ function ProductsPage() {
                     </strong>
 
                     <div className="admin-product-actions">
-
                       <button
                         onClick={() =>
                           window.open(
@@ -359,18 +393,13 @@ function ProductsPage() {
                       >
                         Excluir
                       </button>
-
                     </div>
-
                   </div>
-
                 </article>
               )
             })}
-
           </div>
         )}
-
       </div>
     </main>
   )

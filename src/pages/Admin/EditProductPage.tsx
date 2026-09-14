@@ -1,6 +1,25 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 
+import {
+  DndContext,
+  closestCenter,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable"
+
+import { CSS } from "@dnd-kit/utilities"
+
 import { supabase } from "../../services/supabase"
 import { getCategories } from "../../services/categories"
 
@@ -16,30 +35,169 @@ type ProductImage = {
   position: number
 }
 
+type SortableImageProps = {
+  image: ProductImage
+  index: number
+  onDelete: (imageId: number) => void
+}
+
+function SortableImage({
+  image,
+  index,
+  onDelete,
+}: SortableImageProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: image.id,
+  })
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 100 : undefined,
+    cursor: isDragging ? "grabbing" : "grab",
+    touchAction: "none",
+  }
+
+  return (
+    <article
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={
+        isDragging
+          ? "product-image-sortable dragging"
+          : "product-image-sortable"
+      }
+    >
+      <div className="product-image-preview-photo">
+        <img
+          src={image.image_url}
+          alt={
+            image.alt_text ??
+            `Foto ${index + 1}`
+          }
+          draggable={false}
+        />
+
+        {index === 0 && (
+          <span className="product-cover-label">
+            CAPA
+          </span>
+        )}
+
+        <button
+          type="button"
+          onPointerDown={(event) => {
+            event.stopPropagation()
+          }}
+          onMouseDown={(event) => {
+            event.stopPropagation()
+          }}
+          onTouchStart={(event) => {
+            event.stopPropagation()
+          }}
+          onClick={(event) => {
+            event.stopPropagation()
+            onDelete(image.id)
+          }}
+          aria-label="Excluir foto"
+        >
+          ×
+        </button>
+      </div>
+
+      <p>
+        Foto {index + 1}
+      </p>
+    </article>
+  )
+}
+
 function EditProductPage() {
   const navigate = useNavigate()
   const { id } = useParams()
 
-  const [categories, setCategories] = useState<Category[]>([])
+  const [categories, setCategories] =
+    useState<Category[]>([])
 
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState("")
+  const [loading, setLoading] =
+    useState(true)
 
-  const [name, setName] = useState("")
-  const [productSlug, setProductSlug] = useState("")
-  const [categoryId, setCategoryId] = useState("")
-  const [brand, setBrand] = useState("")
-  const [model, setModel] = useState("")
-  const [condition, setCondition] = useState("novo")
-  const [price, setPrice] = useState("")
-  const [stock, setStock] = useState("1")
-  const [description, setDescription] = useState("")
-  const [featured, setFeatured] = useState(false)
-  const [active, setActive] = useState(true)
+  const [saving, setSaving] =
+    useState(false)
 
-  const [productImages, setProductImages] = useState<ProductImage[]>([])
-  const [newImages, setNewImages] = useState<File[]>([])
+  const [savingOrder, setSavingOrder] =
+    useState(false)
+
+  const [message, setMessage] =
+    useState("")
+
+  const [name, setName] =
+    useState("")
+
+  const [productSlug, setProductSlug] =
+    useState("")
+
+  const [categoryId, setCategoryId] =
+    useState("")
+
+  const [brand, setBrand] =
+    useState("")
+
+  const [model, setModel] =
+    useState("")
+
+  const [condition, setCondition] =
+    useState("novo")
+
+  const [price, setPrice] =
+    useState("")
+
+  const [stock, setStock] =
+    useState("1")
+
+  const [description, setDescription] =
+    useState("")
+
+  const [featured, setFeatured] =
+    useState(false)
+
+  const [active, setActive] =
+    useState(true)
+
+  const [
+    productImages,
+    setProductImages,
+  ] = useState<ProductImage[]>([])
+
+  const [
+    newImages,
+    setNewImages,
+  ] = useState<File[]>([])
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 8,
+      },
+    }),
+  )
 
   useEffect(() => {
     async function loadData() {
@@ -48,7 +206,10 @@ function EditProductPage() {
         return
       }
 
-      const [categoriesData, productResult] = await Promise.all([
+      const [
+        categoriesData,
+        productResult,
+      ] = await Promise.all([
         getCategories(),
 
         supabase
@@ -74,24 +235,34 @@ function EditProductPage() {
               position
             )
           `)
-          .eq("id", Number(id))
+          .eq(
+            "id",
+            Number(id),
+          )
           .single(),
       ])
 
       setCategories(categoriesData)
 
-      if (productResult.error || !productResult.data) {
+      if (
+        productResult.error ||
+        !productResult.data
+      ) {
         console.error(
           "Erro ao carregar produto:",
           productResult.error,
         )
 
-        setMessage("Não foi possível carregar o produto.")
+        setMessage(
+          "Não foi possível carregar o produto.",
+        )
+
         setLoading(false)
         return
       }
 
-      const product = productResult.data
+      const product =
+        productResult.data
 
       setName(product.name)
       setProductSlug(product.slug)
@@ -102,22 +273,49 @@ function EditProductPage() {
           : "",
       )
 
-      setBrand(product.brand ?? "")
-      setModel(product.model ?? "")
-      setCondition(product.condition)
-      setPrice(String(product.price))
-      setStock(String(product.stock))
-      setDescription(product.description ?? "")
-      setFeatured(product.featured)
-      setActive(product.active)
+      setBrand(
+        product.brand ?? "",
+      )
+
+      setModel(
+        product.model ?? "",
+      )
+
+      setCondition(
+        product.condition,
+      )
+
+      setPrice(
+        String(product.price),
+      )
+
+      setStock(
+        String(product.stock),
+      )
+
+      setDescription(
+        product.description ?? "",
+      )
+
+      setFeatured(
+        product.featured,
+      )
+
+      setActive(
+        product.active,
+      )
 
       const sortedImages = [
         ...(product.product_images ?? []),
       ].sort(
-        (a, b) => a.position - b.position,
+        (a, b) =>
+          (a.position ?? 0) -
+          (b.position ?? 0),
       )
 
-      setProductImages(sortedImages)
+      setProductImages(
+        sortedImages,
+      )
 
       setLoading(false)
     }
@@ -135,12 +333,15 @@ function EditProductPage() {
     setNewImages(files)
   }
 
-  function removeNewImage(index: number) {
-    setNewImages((currentImages) =>
-      currentImages.filter(
-        (_, imageIndex) =>
-          imageIndex !== index,
-      ),
+  function removeNewImage(
+    index: number,
+  ) {
+    setNewImages(
+      (currentImages) =>
+        currentImages.filter(
+          (_, imageIndex) =>
+            imageIndex !== index,
+        ),
     )
   }
 
@@ -148,95 +349,285 @@ function EditProductPage() {
     imageUrl: string,
   ) {
     try {
-      const url = new URL(imageUrl)
+      const url =
+        new URL(imageUrl)
 
       const prefix =
         "/storage/v1/object/public/products/"
 
-      if (!url.pathname.includes(prefix)) {
+      if (
+        !url.pathname.includes(
+          prefix,
+        )
+      ) {
         return null
       }
 
       return decodeURIComponent(
-        url.pathname.replace(prefix, ""),
+        url.pathname.replace(
+          prefix,
+          "",
+        ),
       )
     } catch {
       return null
     }
   }
 
+  async function saveImageOrder(
+    images: ProductImage[],
+  ) {
+    setSavingOrder(true)
+
+    try {
+      for (
+        let index = 0;
+        index < images.length;
+        index++
+      ) {
+        const image =
+          images[index]
+
+        const { error } =
+          await supabase
+            .from("product_images")
+            .update({
+              position:
+                index + 1,
+            })
+            .eq(
+              "id",
+              image.id,
+            )
+
+        if (error) {
+          console.error(
+            "Erro ao salvar posição da foto:",
+            error,
+          )
+
+          return false
+        }
+      }
+
+      return true
+    } finally {
+      setSavingOrder(false)
+    }
+  }
+
+  async function handleDragEnd(
+    event: DragEndEvent,
+  ) {
+    const {
+      active: draggedImage,
+      over,
+    } = event
+
+    if (!over) {
+      return
+    }
+
+    if (
+      draggedImage.id ===
+      over.id
+    ) {
+      return
+    }
+
+    const oldIndex =
+      productImages.findIndex(
+        (image) =>
+          image.id ===
+          draggedImage.id,
+      )
+
+    const newIndex =
+      productImages.findIndex(
+        (image) =>
+          image.id ===
+          over.id,
+      )
+
+    if (
+      oldIndex === -1 ||
+      newIndex === -1
+    ) {
+      return
+    }
+
+    const previousImages =
+      [...productImages]
+
+    const reorderedImages =
+      arrayMove(
+        productImages,
+        oldIndex,
+        newIndex,
+      ).map(
+        (image, index) => ({
+          ...image,
+          position:
+            index + 1,
+        }),
+      )
+
+    /*
+     * Primeiro muda visualmente.
+     */
+    setProductImages(
+      reorderedImages,
+    )
+
+    setMessage(
+      "Salvando nova ordem das fotos...",
+    )
+
+    /*
+     * Depois salva no Supabase.
+     */
+    const saved =
+      await saveImageOrder(
+        reorderedImages,
+      )
+
+    if (!saved) {
+      setProductImages(
+        previousImages,
+      )
+
+      setMessage(
+        "Não foi possível salvar a nova ordem das fotos.",
+      )
+
+      return
+    }
+
+    setMessage(
+      "Ordem das fotos atualizada com sucesso.",
+    )
+  }
+
+  async function normalizeImagePositions(
+    images: ProductImage[],
+  ) {
+    const normalized =
+      images.map(
+        (image, index) => ({
+          ...image,
+          position:
+            index + 1,
+        }),
+      )
+
+    const saved =
+      await saveImageOrder(
+        normalized,
+      )
+
+    if (!saved) {
+      return null
+    }
+
+    return normalized
+  }
+
   async function deleteProductImage(
     imageId: number,
   ) {
-    const confirmed = window.confirm(
-      "Deseja realmente excluir esta foto?",
-    )
+    const confirmed =
+      window.confirm(
+        "Deseja realmente excluir esta foto?",
+      )
 
     if (!confirmed) {
       return
     }
 
-    const image = productImages.find(
-      (item) => item.id === imageId,
-    )
+    const image =
+      productImages.find(
+        (item) =>
+          item.id === imageId,
+      )
 
     if (!image) {
       return
     }
 
-    const storagePath =
-      image.storage_path ||
-      getStoragePathFromUrl(
-        image.image_url,
-      )
-
-    if (!storagePath) {
-      alert(
-        "Não foi possível identificar o arquivo desta foto no Storage.",
-      )
-      return
-    }
-
     try {
-      const {
-        data: removedFiles,
-        error: storageError,
-      } = await supabase.storage
-        .from("products")
-        .remove([storagePath])
-
-      if (storageError) {
-        console.error(
-          "Erro ao excluir foto do Storage:",
-          storageError,
+      const pathFromUrl =
+        getStoragePathFromUrl(
+          image.image_url,
         )
 
-        alert(
-          "Não foi possível excluir a foto do Storage.",
-        )
-        return
-      }
+      const possiblePaths = [
+        image.storage_path,
+        pathFromUrl,
+      ].filter(
+        (
+          path,
+          index,
+          paths,
+        ): path is string =>
+          Boolean(path) &&
+          paths.indexOf(path) ===
+            index,
+      )
 
-      if (
-        !removedFiles ||
-        removedFiles.length === 0
+      let storageFileRemoved =
+        false
+
+      for (
+        const storagePath
+        of possiblePaths
       ) {
-        console.error(
-          "Storage não encontrou o arquivo:",
-          storagePath,
-        )
+        const {
+          data: removedFiles,
+          error: storageError,
+        } =
+          await supabase.storage
+            .from("products")
+            .remove([
+              storagePath,
+            ])
 
-        alert(
-          "O arquivo não foi encontrado no Storage. O registro não foi excluído.",
-        )
-        return
+        if (storageError) {
+          console.error(
+            "Erro ao tentar excluir arquivo:",
+            storagePath,
+            storageError,
+          )
+
+          continue
+        }
+
+        if (
+          removedFiles &&
+          removedFiles.length > 0
+        ) {
+          storageFileRemoved =
+            true
+
+          break
+        }
       }
 
-      const { error: databaseError } =
+      if (!storageFileRemoved) {
+        console.warn(
+          "Arquivo não encontrado no Storage. Removendo somente o registro da tabela.",
+        )
+      }
+
+      const {
+        error: databaseError,
+      } =
         await supabase
           .from("product_images")
           .delete()
-          .eq("id", imageId)
+          .eq(
+            "id",
+            imageId,
+          )
 
       if (databaseError) {
         console.error(
@@ -245,18 +636,39 @@ function EditProductPage() {
         )
 
         alert(
-          "A foto foi removida do Storage, mas houve erro ao atualizar o banco.",
+          "Não foi possível excluir o registro da foto.",
         )
+
         return
       }
 
-      setProductImages(
-        (currentImages) =>
-          currentImages.filter(
-            (item) =>
-              item.id !== imageId,
-          ),
-      )
+      const remainingImages =
+        productImages.filter(
+          (item) =>
+            item.id !== imageId,
+        )
+
+      if (
+        remainingImages.length === 0
+      ) {
+        setProductImages([])
+        return
+      }
+
+      const normalized =
+        await normalizeImagePositions(
+          remainingImages,
+        )
+
+      if (normalized) {
+        setProductImages(
+          normalized,
+        )
+      } else {
+        setProductImages(
+          remainingImages,
+        )
+      }
     } catch (error) {
       console.error(
         "Erro inesperado ao excluir foto:",
@@ -277,36 +689,37 @@ function EditProductPage() {
       return true
     }
 
-    const currentMaxPosition =
-      productImages.length > 0
-        ? Math.max(
-            ...productImages.map(
-              (image) =>
-                image.position,
-            ),
-          )
-        : 0
+    const startingPosition =
+      productImages.length + 1
 
-    const uploadedImages: ProductImage[] =
-      []
+    const uploadedImages:
+      ProductImage[] = []
 
     for (
       let index = 0;
       index < newImages.length;
       index++
     ) {
-      const image = newImages[index]
+      const image =
+        newImages[index]
 
       const extension =
         image.name
           .split(".")
           .pop()
-          ?.toLowerCase() ?? "jpg"
+          ?.toLowerCase() ??
+        "jpg"
 
-      const timestamp = Date.now()
+      const timestamp =
+        Date.now()
 
       const fileName =
-        `foto-${timestamp}-${index + 1}.${extension}`
+        `foto-${timestamp}-${String(
+          index + 1,
+        ).padStart(
+          2,
+          "0",
+        )}.${extension}`
 
       const folderName =
         productSlug ||
@@ -315,15 +728,20 @@ function EditProductPage() {
       const filePath =
         `${folderName}/${fileName}`
 
-      const { error: uploadError } =
+      const {
+        error: uploadError,
+      } =
         await supabase.storage
           .from("products")
           .upload(
             filePath,
             image,
             {
-              cacheControl: "3600",
-              upsert: false,
+              cacheControl:
+                "3600",
+
+              upsert:
+                false,
             },
           )
 
@@ -341,37 +759,50 @@ function EditProductPage() {
       }
 
       const {
-        data: { publicUrl },
-      } = supabase.storage
-        .from("products")
-        .getPublicUrl(filePath)
+        data: {
+          publicUrl,
+        },
+      } =
+        supabase.storage
+          .from("products")
+          .getPublicUrl(
+            filePath,
+          )
 
       const newPosition =
-        currentMaxPosition +
-        uploadedImages.length +
-        1
+        startingPosition +
+        index
 
       const {
         data: imageRecord,
         error: imageError,
-      } = await supabase
-        .from("product_images")
-        .insert({
-          product_id: Number(id),
-          image_url: publicUrl,
-          storage_path: filePath,
-          alt_text:
-            `${name} - Foto ${newPosition}`,
-          position: newPosition,
-        })
-        .select(`
-          id,
-          image_url,
-          storage_path,
-          alt_text,
-          position
-        `)
-        .single()
+      } =
+        await supabase
+          .from("product_images")
+          .insert({
+            product_id:
+              Number(id),
+
+            image_url:
+              publicUrl,
+
+            storage_path:
+              filePath,
+
+            alt_text:
+              `${name} - Foto ${newPosition}`,
+
+            position:
+              newPosition,
+          })
+          .select(`
+            id,
+            image_url,
+            storage_path,
+            alt_text,
+            position
+          `)
+          .single()
 
       if (
         imageError ||
@@ -384,7 +815,9 @@ function EditProductPage() {
 
         await supabase.storage
           .from("products")
-          .remove([filePath])
+          .remove([
+            filePath,
+          ])
 
         alert(
           `A foto ${index + 1} foi enviada, mas não pôde ser registrada.`,
@@ -401,16 +834,17 @@ function EditProductPage() {
     if (
       uploadedImages.length > 0
     ) {
+      const allImages = [
+        ...productImages,
+        ...uploadedImages,
+      ].sort(
+        (a, b) =>
+          a.position -
+          b.position,
+      )
+
       setProductImages(
-        (currentImages) =>
-          [
-            ...currentImages,
-            ...uploadedImages,
-          ].sort(
-            (a, b) =>
-              a.position -
-              b.position,
-          ),
+        allImages,
       )
     }
 
@@ -432,30 +866,43 @@ function EditProductPage() {
     setMessage("")
 
     try {
-      const { error } = await supabase
-        .from("products")
-        .update({
-          name,
-          category_id:
-            Number(categoryId),
-          brand:
-            brand || null,
-          model:
-            model || null,
-          condition,
-          price:
-            Number(price),
-          stock:
-            Number(stock),
-          description:
-            description || null,
-          featured,
-          active,
-        })
-        .eq(
-          "id",
-          Number(id),
-        )
+      const { error } =
+        await supabase
+          .from("products")
+          .update({
+            name,
+
+            category_id:
+              Number(
+                categoryId,
+              ),
+
+            brand:
+              brand || null,
+
+            model:
+              model || null,
+
+            condition,
+
+            price:
+              Number(price),
+
+            stock:
+              Number(stock),
+
+            description:
+              description ||
+              null,
+
+            featured,
+
+            active,
+          })
+          .eq(
+            "id",
+            Number(id),
+          )
 
       if (error) {
         console.error(
@@ -541,7 +988,9 @@ function EditProductPage() {
 
         <form
           className="new-product-form"
-          onSubmit={handleSubmit}
+          onSubmit={
+            handleSubmit
+          }
         >
           <div className="form-grid">
 
@@ -579,16 +1028,10 @@ function EditProductPage() {
                 {categories.map(
                   (category) => (
                     <option
-                      key={
-                        category.id
-                      }
-                      value={
-                        category.id
-                      }
+                      key={category.id}
+                      value={category.id}
                     >
-                      {
-                        category.name
-                      }
+                      {category.name}
                     </option>
                   ),
                 )}
@@ -734,8 +1177,10 @@ function EditProductPage() {
                 </strong>
 
                 <p>
-                  Visualize ou remova
-                  as fotos deste produto.
+                  Clique, segure e
+                  arraste a própria foto
+                  para alterar a ordem.
+                  A primeira será a capa.
                 </p>
               </div>
 
@@ -748,60 +1193,52 @@ function EditProductPage() {
             </div>
 
             {productImages.length > 0 ? (
-              <div className="product-image-preview">
-
-                {productImages.map(
-                  (
-                    image,
-                    index,
-                  ) => (
-                    <article
-                      key={image.id}
-                    >
-                      <div className="product-image-preview-photo">
-
-                        <img
-                          src={
-                            image.image_url
-                          }
-                          alt={
-                            image.alt_text ??
-                            `Foto ${
-                              index +
-                              1
-                            }`
+              <DndContext
+                sensors={sensors}
+                collisionDetection={
+                  closestCenter
+                }
+                onDragEnd={
+                  handleDragEnd
+                }
+              >
+                <SortableContext
+                  items={productImages.map(
+                    (image) =>
+                      image.id,
+                  )}
+                  strategy={
+                    rectSortingStrategy
+                  }
+                >
+                  <div className="product-image-preview">
+                    {productImages.map(
+                      (
+                        image,
+                        index,
+                      ) => (
+                        <SortableImage
+                          key={image.id}
+                          image={image}
+                          index={index}
+                          onDelete={
+                            deleteProductImage
                           }
                         />
-
-                        {index ===
-                          0 && (
-                          <span className="product-cover-label">
-                            CAPA
-                          </span>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            deleteProductImage(
-                              image.id,
-                            )
-                          }
-                          aria-label="Excluir foto"
-                        >
-                          ×
-                        </button>
-
-                      </div>
-                    </article>
-                  ),
-                )}
-
-              </div>
+                      ),
+                    )}
+                  </div>
+                </SortableContext>
+              </DndContext>
             ) : (
               <p>
-                Este produto não possui
-                fotos.
+                Este produto não possui fotos.
+              </p>
+            )}
+
+            {savingOrder && (
+              <p>
+                Salvando ordem das fotos...
               </p>
             )}
 
@@ -817,8 +1254,8 @@ function EditProductPage() {
                   </strong>
 
                   <p>
-                    Selecione outras imagens
-                    para este produto.
+                    As novas fotos serão adicionadas
+                    depois das fotos atuais.
                   </p>
                 </div>
 
@@ -854,7 +1291,6 @@ function EditProductPage() {
 
             {newImages.length > 0 && (
               <div className="product-image-preview">
-
                 {newImages.map(
                   (
                     image,
@@ -891,13 +1327,14 @@ function EditProductPage() {
                       </div>
 
                       <p>
-                        {image.name}
+                        Foto{" "}
+                        {productImages.length +
+                          index +
+                          1}
                       </p>
-
                     </article>
                   ),
                 )}
-
               </div>
             )}
 
@@ -912,7 +1349,10 @@ function EditProductPage() {
           <button
             className="new-product-submit"
             type="submit"
-            disabled={saving}
+            disabled={
+              saving ||
+              savingOrder
+            }
           >
             {saving
               ? "Salvando..."
