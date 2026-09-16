@@ -1,7 +1,6 @@
 .admin-messages-page {
   min-height: 100vh;
   padding: 50px 20px;
-
   background:
     radial-gradient(
       circle at 50% 0%,
@@ -16,18 +15,20 @@
   margin: 0 auto;
 }
 
+/* =========================
+   CABEÇALHO
+   ========================= */
+
 .admin-messages-heading {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-
   gap: 30px;
   margin-bottom: 35px;
 }
 
 .admin-messages-heading span {
   color: var(--color-primary-light);
-
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.6px;
@@ -35,7 +36,6 @@
 
 .admin-messages-heading h1 {
   margin: 7px 0;
-
   font-size: 42px;
 }
 
@@ -46,13 +46,9 @@
 .admin-messages-heading > button {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-
   padding: 11px 15px;
-
   background: transparent;
-
   color: var(--color-text-secondary);
-
   cursor: pointer;
 }
 
@@ -61,32 +57,26 @@
   color: var(--color-text);
 }
 
-/* Título + contador de clientes aguardando */
+/* =========================
+   TÍTULO + AGUARDANDO
+   ========================= */
 
 .admin-messages-title-row {
   display: flex;
   align-items: center;
-
   gap: 14px;
-
   flex-wrap: wrap;
 }
 
 .admin-waiting-counter {
   display: flex;
   align-items: center;
-
   gap: 7px;
-
   padding: 7px 11px;
-
   border: 1px solid rgba(255, 92, 92, 0.3);
   border-radius: 999px;
-
   background: rgba(255, 92, 92, 0.08);
-
   color: #ff7b7b;
-
   font-size: 11px;
   font-weight: 800;
 }
@@ -94,17 +84,16 @@
 .admin-waiting-dot {
   width: 8px;
   height: 8px;
-
   border-radius: 50%;
-
   background: #ff5c5c;
-
   box-shadow:
     0 0 0 4px rgba(255, 92, 92, 0.1),
     0 0 10px rgba(255, 92, 92, 0.55);
-
   animation:
-    adminWaitingPulse 1.5s ease-in-out infinite;
+    adminWaitingPulse
+    1.5s
+    ease-in-out
+    infinite;
 }
 
 @keyframes adminWaitingPulse {
@@ -120,282 +109,9 @@
   }
 }
 
-.admin-messages-status {
-  padding: 40px;
-
-  text-align: center;
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-
-  background: var(--color-surface);
-
-  color: var(--color-text-secondary);
-}
-
-.admin-conversations-list {
-  display: flex;
-  flex-direction: column;
-
-  gap: 12px;
-}
-
-.admin-conversation-card {
-  width: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 30px;
-
-  padding: 18px 20px;
-
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-
-  background: var(--color-surface);
-
-  color: var(--color-text);
-
-  text-align: left;
-
-  cursor: pointer;
-
-  transition:
-    transform var(--transition),
-    border-color var(--transition),
-    background var(--transition),
-    box-shadow var(--transition);
-}
-
-.admin-conversation-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--color-border-highlight);
-}
-
-/*
-  Destaque especial quando o visitante
-  solicitou atendimento humano.
-*/
-
-.admin-conversation-card.waiting-human {
-  border-color: rgba(255, 92, 92, 0.32);
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(255, 92, 92, 0.06),
-      transparent 45%
-    ),
-    var(--color-surface);
-
-  box-shadow:
-    0 0 0 1px rgba(255, 92, 92, 0.03),
-    0 10px 35px rgba(255, 92, 92, 0.05);
-}
-
-.admin-conversation-card.waiting-human:hover {
-  border-color: rgba(255, 92, 92, 0.55);
-}
-
-.admin-conversation-main {
-  display: flex;
-  align-items: center;
-
-  gap: 14px;
-
-  min-width: 0;
-}
-
-.admin-conversation-avatar {
-  width: 42px;
-  height: 42px;
-
-  flex-shrink: 0;
-
-  display: grid;
-  place-items: center;
-
-  border-radius: 50%;
-
-  background:
-    linear-gradient(
-      135deg,
-      var(--color-primary),
-      var(--color-neon)
-    );
-
-  font-weight: 800;
-}
-
-.admin-conversation-card.waiting-human
-.admin-conversation-avatar {
-  background:
-    linear-gradient(
-      135deg,
-      #ff5c5c,
-      #ff8a65
-    );
-}
-
-.admin-conversation-main > div:last-child {
-  display: flex;
-  flex-direction: column;
-
-  gap: 4px;
-
-  min-width: 0;
-}
-
-.admin-conversation-main strong {
-  font-size: 14px;
-}
-
-.admin-conversation-main span {
-  overflow: hidden;
-
-  color: var(--color-text-secondary);
-
-  font-size: 12px;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.admin-conversation-main
-.admin-human-request {
-  margin-top: 3px;
-
-  color: #ff7b7b;
-
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.admin-conversation-meta {
-  display: flex;
-  align-items: flex-end;
-  flex-direction: column;
-
-  gap: 7px;
-
-  flex-shrink: 0;
-}
-
-.conversation-status {
-  display: inline-flex;
-  align-items: center;
-
-  gap: 6px;
-
-  padding: 5px 8px;
-
-  border-radius: 999px;
-
-  font-size: 9px;
-  font-weight: 800;
-
-  text-transform: uppercase;
-}
-
-.conversation-status.open {
-  color: #5cff9d;
-  background: rgba(92, 255, 157, 0.1);
-}
-
-.conversation-status.waiting {
-  color: #ff7b7b;
-  background: rgba(255, 92, 92, 0.1);
-}
-
-.conversation-status.closed {
-  color: var(--color-text-secondary);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.conversation-status-dot {
-  width: 6px;
-  height: 6px;
-
-  border-radius: 50%;
-
-  background: currentColor;
-
-  box-shadow:
-    0 0 8px currentColor;
-
-  animation:
-    adminWaitingPulse 1.5s ease-in-out infinite;
-}
-
-.admin-conversation-meta small {
-  color: var(--color-text-secondary);
-
-  font-size: 10px;
-}
-
-@media (max-width: 700px) {
-  .admin-messages-heading {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .admin-messages-heading h1 {
-    font-size: 34px;
-  }
-
-  .admin-messages-title-row {
-    align-items: flex-start;
-    flex-direction: column;
-
-    gap: 8px;
-  }
-
-  .admin-conversation-card {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .admin-conversation-meta {
-    align-items: flex-start;
-  }
-}
-
-.admin-conversation-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 22px 0;
-}
-
-.admin-conversation-filters button {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
-  color: #cbd5e1;
-  border-radius: 999px;
-  padding: 9px 16px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.admin-conversation-filters button:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.admin-conversation-filters button.active {
-  background: rgba(0, 255, 200, 0.12);
-  border-color: rgba(0, 255, 200, 0.55);
-  color: #7fffd4;
-}
+/* =========================
+   BUSCA
+   ========================= */
 
 .admin-conversation-search {
   position: relative;
@@ -428,7 +144,9 @@
 .admin-conversation-search input:focus {
   border-color: rgba(0, 255, 200, 0.55);
   background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 0 3px rgba(0, 255, 200, 0.08);
+  box-shadow:
+    0 0 0 3px
+    rgba(0, 255, 200, 0.08);
 }
 
 .admin-conversation-search-icon {
@@ -463,34 +181,409 @@
   color: #ffffff;
 }
 
+/* =========================
+   FILTROS
+   ========================= */
+
+.admin-conversation-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 22px 0;
+}
+
 .admin-conversation-filters button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbd5e1;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-conversation-filters button:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.admin-conversation-filters button.active {
+  background: rgba(0, 255, 200, 0.12);
+  border-color: rgba(0, 255, 200, 0.55);
+  color: #7fffd4;
 }
 
 .admin-filter-count {
   min-width: 22px;
   height: 22px;
   padding: 0 6px;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 999px;
-
   background: rgba(255, 255, 255, 0.08);
-
   color: #94a3b8;
-
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 1;
 }
 
-.admin-conversation-filters button.active
+.admin-conversation-filters
+  button.active
   .admin-filter-count {
   background: rgba(0, 255, 200, 0.16);
   color: #7fffd4;
+}
+
+/* =========================
+   STATUS GERAL
+   ========================= */
+
+.admin-messages-status {
+  padding: 40px;
+  text-align: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+/* =========================
+   LISTA DE CONVERSAS
+   ========================= */
+
+.admin-conversations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/*
+ * Agora o card é uma DIV.
+ * Dentro dele temos:
+ *
+ * 1. botão para abrir conversa
+ * 2. área de status
+ * 3. botão excluir
+ */
+
+.admin-conversation-card {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition:
+    transform var(--transition),
+    border-color var(--transition),
+    background var(--transition),
+    box-shadow var(--transition);
+}
+
+.admin-conversation-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-highlight);
+}
+
+/* =========================
+   ÁREA QUE ABRE A CONVERSA
+   ========================= */
+
+.admin-conversation-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 18px 20px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-conversation-open:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.admin-conversation-open:focus-visible {
+  outline:
+    2px solid
+    var(--color-primary-light);
+  outline-offset: -3px;
+}
+
+/* =========================
+   AGUARDANDO HUMANO
+   ========================= */
+
+.admin-conversation-card.waiting-human {
+  border-color: rgba(255, 92, 92, 0.32);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 92, 92, 0.06),
+      transparent 45%
+    ),
+    var(--color-surface);
+  box-shadow:
+    0 0 0 1px rgba(255, 92, 92, 0.03),
+    0 10px 35px rgba(255, 92, 92, 0.05);
+}
+
+.admin-conversation-card.waiting-human:hover {
+  border-color: rgba(255, 92, 92, 0.55);
+}
+
+/* =========================
+   VISITANTE
+   ========================= */
+
+.admin-conversation-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.admin-conversation-avatar {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    linear-gradient(
+      135deg,
+      var(--color-primary),
+      var(--color-neon)
+    );
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.admin-conversation-card.waiting-human
+  .admin-conversation-avatar {
+  background:
+    linear-gradient(
+      135deg,
+      #ff5c5c,
+      #ff8a65
+    );
+}
+
+.admin-conversation-main
+  > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-conversation-main strong {
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.admin-conversation-main span {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-conversation-main
+  .admin-human-request {
+  margin-top: 3px;
+  color: #ff7b7b;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* =========================
+   STATUS / DATA / EXCLUIR
+   ========================= */
+
+.admin-conversation-meta {
+  min-width: 155px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-direction: column;
+  gap: 7px;
+  flex-shrink: 0;
+  padding: 14px 18px 14px 0;
+}
+
+.conversation-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.conversation-status.open {
+  color: #5cff9d;
+  background: rgba(92, 255, 157, 0.1);
+}
+
+.conversation-status.waiting {
+  color: #ff7b7b;
+  background: rgba(255, 92, 92, 0.1);
+}
+
+.conversation-status.closed {
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.conversation-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow:
+    0 0 8px currentColor;
+  animation:
+    adminWaitingPulse
+    1.5s
+    ease-in-out
+    infinite;
+}
+
+.admin-conversation-meta small {
+  color: var(--color-text-secondary);
+  font-size: 10px;
+}
+
+/* =========================
+   BOTÃO EXCLUIR
+   ========================= */
+
+.admin-conversation-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 82px;
+  min-height: 30px;
+  margin-top: 2px;
+  padding: 6px 9px;
+  border:
+    1px solid
+    rgba(255, 92, 92, 0.22);
+  border-radius: 8px;
+  background:
+    rgba(255, 92, 92, 0.06);
+  color: #ff7b7b;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-conversation-delete:hover:not(:disabled) {
+  border-color:
+    rgba(255, 92, 92, 0.6);
+  background:
+    rgba(255, 92, 92, 0.14);
+  color: #ff9b9b;
+  transform: translateY(-1px);
+}
+
+.admin-conversation-delete:focus-visible {
+  outline:
+    2px solid
+    rgba(255, 92, 92, 0.7);
+  outline-offset: 2px;
+}
+
+.admin-conversation-delete:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* =========================
+   RESPONSIVO
+   ========================= */
+
+@media (max-width: 700px) {
+  .admin-messages-page {
+    padding:
+      30px
+      14px;
+  }
+
+  .admin-messages-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-messages-heading h1 {
+    font-size: 34px;
+  }
+
+  .admin-messages-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .admin-conversation-card {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .admin-conversation-open {
+    width: 100%;
+    padding:
+      16px
+      16px
+      10px;
+  }
+
+  .admin-conversation-meta {
+    width: 100%;
+    min-width: 0;
+    align-items: flex-start;
+    padding:
+      0
+      16px
+      16px
+      72px;
+  }
+
+  .admin-conversation-delete {
+    margin-top: 5px;
+  }
 }

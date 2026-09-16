@@ -9,8 +9,11 @@ import type { RealtimeChannel } from "@supabase/supabase-js"
 import {
   getChatMessages,
   getStoredConversationId,
+  getStoredVisitorName,
   requestAIResponse,
   sendVisitorMessage,
+  storeVisitorName,
+  updateVisitorName,
   type ChatMessage,
 } from "../../services/chat"
 
@@ -65,6 +68,7 @@ function renderMessageContent(
           <span className="chat-catalog-label">
             {matchedLabel}:
           </span>{" "}
+
           <span className="chat-catalog-value">
             {value}
           </span>
@@ -82,6 +86,63 @@ function ChatWidget() {
 
   const [messages, setMessages] =
     useState<ChatMessage[]>([])
+
+  /*
+   * Nome digitado no formulário
+   * de identificação.
+   */
+  const [
+    visitorNameInput,
+    setVisitorNameInput,
+  ] = useState("")
+
+  /*
+   * Nome confirmado do visitante.
+   */
+  const [
+    visitorName,
+    setVisitorName,
+  ] = useState(
+    () =>
+      getStoredVisitorName() ?? "",
+  )
+
+  /*
+   * O visitante só é considerado
+   * identificado quando existe:
+   *
+   * 1. conversa salva
+   * 2. nome salvo
+   *
+   * Portanto, conversas antigas que
+   * possuem ID mas não possuem nome
+   * voltarão a pedir identificação.
+   */
+  const [
+    visitorIdentified,
+    setVisitorIdentified,
+  ] = useState(() => {
+    const storedConversationId =
+      getStoredConversationId()
+
+    const storedVisitorName =
+      getStoredVisitorName()
+
+    return Boolean(
+      storedConversationId &&
+      storedVisitorName?.trim(),
+    )
+  })
+
+  const [
+    identifying,
+    setIdentifying,
+  ] = useState(false)
+
+  const [
+    identificationError,
+    setIdentificationError,
+  ] = useState("")
 
   const [
     conversationId,
@@ -106,13 +167,30 @@ function ChatWidget() {
       null,
     )
 
+  const nameInputRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    )
+
   const channelRef =
     useRef<RealtimeChannel | null>(
       null,
     )
 
+  /*
+   * Carrega mensagens somente se
+   * existir uma conversa.
+   */
   useEffect(() => {
     async function loadMessages() {
+      const storedConversationId =
+        getStoredConversationId()
+
+      if (!storedConversationId) {
+        setMessages([])
+        return
+      }
+
       const data =
         await getChatMessages()
 
@@ -122,6 +200,10 @@ function ChatWidget() {
     loadMessages()
   }, [])
 
+  /*
+   * Permite que outras partes do site
+   * abram o chat.
+   */
   useEffect(() => {
     function handleOpenChat() {
       setOpen(true)
@@ -140,6 +222,9 @@ function ChatWidget() {
     }
   }, [])
 
+  /*
+   * Realtime da conversa.
+   */
   useEffect(() => {
     if (!conversationId) {
       return
@@ -185,6 +270,10 @@ function ChatWidget() {
     }
   }, [conversationId])
 
+  /*
+   * Mantém o chat rolado para
+   * a mensagem mais recente.
+   */
   useEffect(() => {
     if (!open) {
       return
@@ -199,14 +288,31 @@ function ChatWidget() {
     aiTyping,
   ])
 
+  /*
+   * Foco automático.
+   *
+   * Se ainda não sabemos quem é
+   * o visitante, foco no nome.
+   *
+   * Se já está identificado,
+   * foco na mensagem.
+   */
   useEffect(() => {
-    if (!open || sending) {
+    if (
+      !open ||
+      sending ||
+      identifying
+    ) {
       return
     }
 
     const timeout =
       setTimeout(() => {
-        inputRef.current?.focus()
+        if (!visitorIdentified) {
+          nameInputRef.current?.focus()
+        } else {
+          inputRef.current?.focus()
+        }
       }, 0)
 
     return () => {
@@ -215,8 +321,14 @@ function ChatWidget() {
   }, [
     open,
     sending,
+    identifying,
+    visitorIdentified,
   ])
 
+  /*
+   * Mensagem de erro exibida
+   * dentro do próprio chat.
+   */
   function addLocalErrorMessage(
     content: string,
   ) {
@@ -250,6 +362,102 @@ function ChatWidget() {
     )
   }
 
+  /*
+   * Identificação do visitante.
+   *
+   * Existem dois cenários:
+   *
+   * A) conversa antiga sem nome
+   *    → atualiza a conversa existente
+   *
+   * B) visitante novo
+   *    → guarda o nome
+   *      e a conversa será criada
+   *      quando ele mandar a primeira
+   *      mensagem
+   */
+  async function handleIdentifyVisitor(
+    event:
+      React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
+
+    const normalizedName =
+      visitorNameInput.trim()
+
+    if (
+      !normalizedName ||
+      identifying
+    ) {
+      return
+    }
+
+    setIdentifying(true)
+    setIdentificationError("")
+
+    try {
+      const storedConversationId =
+        getStoredConversationId()
+
+      if (storedConversationId) {
+        /*
+         * Conversa antiga:
+         * atualiza visitor_name
+         * no Supabase.
+         */
+        await updateVisitorName(
+          normalizedName,
+        )
+      } else {
+        /*
+         * Visitante novo:
+         * ainda não existe conversa.
+         *
+         * Apenas guardamos o nome.
+         */
+        storeVisitorName(
+          normalizedName,
+        )
+      }
+
+      setVisitorName(
+        normalizedName,
+      )
+
+      setVisitorIdentified(
+        true,
+      )
+
+      /*
+       * updateVisitorName pode detectar
+       * que a conversa antiga foi
+       * excluída pelo Admin.
+       *
+       * Nesse caso o ID terá sido
+       * removido do localStorage.
+       */
+      setConversationId(
+        getStoredConversationId(),
+      )
+
+      setVisitorNameInput("")
+    } catch (error) {
+      console.error(
+        "Erro ao identificar visitante:",
+        error,
+      )
+
+      setIdentificationError(
+        "Não foi possível salvar seu nome. Tente novamente.",
+      )
+    } finally {
+      setIdentifying(false)
+    }
+  }
+
+  /*
+   * Envio da mensagem.
+   */
   async function handleSend(
     event:
       React.FormEvent<HTMLFormElement>,
@@ -261,7 +469,9 @@ function ChatWidget() {
 
     if (
       !content ||
-      sending
+      sending ||
+      !visitorIdentified ||
+      !visitorName.trim()
     ) {
       return
     }
@@ -269,11 +479,30 @@ function ChatWidget() {
     setSending(true)
 
     try {
+      /*
+       * sendVisitorMessage verifica
+       * automaticamente se a conversa
+       * ainda existe.
+       *
+       * Se o Admin tiver excluído,
+       * uma nova conversa será criada
+       * usando visitorName.
+       */
       const currentConversationId =
         await sendVisitorMessage(
           content,
+          visitorName,
         )
 
+      /*
+       * Muito importante:
+       *
+       * Se uma nova conversa tiver sido
+       * criada, atualizamos o state.
+       *
+       * Isso também faz o useEffect do
+       * Realtime conectar no novo ID.
+       */
       setConversationId(
         currentConversationId,
       )
@@ -359,6 +588,7 @@ function ChatWidget() {
     <>
       {open && (
         <section className="chat-widget">
+
           <header className="chat-widget-header">
             <div>
               <span>
@@ -381,88 +611,184 @@ function ChatWidget() {
             </button>
           </header>
 
-          <div className="chat-widget-body">
-            <div className="chat-message assistant">
-              <p>Olá! 👋</p>
+          {!visitorIdentified ? (
+            /*
+             * =========================
+             * IDENTIFICAÇÃO
+             * =========================
+             */
+            <div className="chat-identification">
 
-              <p>
-                Como podemos ajudar?
-              </p>
-            </div>
+              <div className="chat-message assistant">
+                <p>
+                  Olá! 👋
+                </p>
 
-            {messages.map(
-              (chatMessage) => (
-                <div
-                  key={
-                    chatMessage.id
+                <p>
+                  Antes de começarmos,
+                  como podemos chamar você?
+                </p>
+              </div>
+
+              <form
+                className="chat-identification-form"
+                onSubmit={
+                  handleIdentifyVisitor
+                }
+              >
+                <label htmlFor="chat-visitor-name">
+                  Seu nome
+                </label>
+
+                <input
+                  ref={nameInputRef}
+                  id="chat-visitor-name"
+                  type="text"
+                  value={
+                    visitorNameInput
                   }
-                  className={
-                    chatMessage.sender ===
-                    "visitor"
-                      ? "chat-message visitor"
-                      : "chat-message assistant"
+                  onChange={(event) => {
+                    setVisitorNameInput(
+                      event.target.value,
+                    )
+
+                    if (
+                      identificationError
+                    ) {
+                      setIdentificationError(
+                        "",
+                      )
+                    }
+                  }}
+                  placeholder="Digite seu nome"
+                  autoComplete="name"
+                  maxLength={80}
+                  disabled={
+                    identifying
+                  }
+                />
+
+                {identificationError && (
+                  <p className="chat-identification-error">
+                    {identificationError}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={
+                    identifying ||
+                    !visitorNameInput.trim()
                   }
                 >
+                  {identifying
+                    ? "Salvando..."
+                    : "Iniciar conversa"}
+                </button>
+              </form>
+
+            </div>
+          ) : (
+            /*
+             * =========================
+             * CONVERSA
+             * =========================
+             */
+            <>
+              <div className="chat-widget-body">
+
+                <div className="chat-message assistant">
                   <p>
-                    {chatMessage.sender ===
-                    "ai"
-                      ? renderMessageContent(
-                          chatMessage.content,
-                        )
-                      : chatMessage.content}
+                    Olá, {visitorName}! 👋
+                  </p>
+
+                  <p>
+                    Como podemos ajudar?
                   </p>
                 </div>
-              ),
-            )}
 
-            {aiTyping && (
-              <div className="chat-message assistant typing">
-                <span className="typing-label">
-                  Assistente está digitando
-                </span>
+                {messages.map(
+                  (chatMessage) => (
+                    <div
+                      key={
+                        chatMessage.id
+                      }
+                      className={
+                        chatMessage.sender ===
+                        "visitor"
+                          ? "chat-message visitor"
+                          : "chat-message assistant"
+                      }
+                    >
+                      <p>
+                        {chatMessage.sender ===
+                        "ai"
+                          ? renderMessageContent(
+                              chatMessage.content,
+                            )
+                          : chatMessage.content}
+                      </p>
+                    </div>
+                  ),
+                )}
 
-                <span
-                  className="typing-dots"
-                  aria-hidden="true"
-                >
-                  <i></i>
-                  <i></i>
-                  <i></i>
-                </span>
+                {aiTyping && (
+                  <div className="chat-message assistant typing">
+
+                    <span className="typing-label">
+                      Assistente está digitando
+                    </span>
+
+                    <span
+                      className="typing-dots"
+                      aria-hidden="true"
+                    >
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                    </span>
+
+                  </div>
+                )}
+
+                <div
+                  ref={messagesEndRef}
+                />
+
               </div>
-            )}
 
-            <div
-              ref={messagesEndRef}
-            />
-          </div>
+              <form
+                className="chat-widget-form"
+                onSubmit={handleSend}
+              >
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={message}
+                  onChange={(event) =>
+                    setMessage(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="Digite sua mensagem..."
+                  disabled={sending}
+                />
 
-          <form
-            className="chat-widget-form"
-            onSubmit={handleSend}
-          >
-            <input
-              ref={inputRef}
-              type="text"
-              value={message}
-              onChange={(event) =>
-                setMessage(
-                  event.target.value,
-                )
-              }
-              placeholder="Digite sua mensagem..."
-              disabled={sending}
-            />
+                <button
+                  type="submit"
+                  disabled={
+                    sending ||
+                    !message.trim()
+                  }
+                >
+                  {sending
+                    ? "..."
+                    : "Enviar"}
+                </button>
+              </form>
+            </>
+          )}
 
-            <button
-              type="submit"
-              disabled={sending}
-            >
-              {sending
-                ? "..."
-                : "Enviar"}
-            </button>
-          </form>
         </section>
       )}
 

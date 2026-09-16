@@ -42,6 +42,11 @@ function MessagesPage() {
   const [searchTerm, setSearchTerm] =
     useState("")
 
+  const [
+    deletingConversationId,
+    setDeletingConversationId,
+  ] = useState<string | null>(null)
+
   const counters = useMemo(() => {
     const waiting =
       conversations.filter(
@@ -245,6 +250,102 @@ function MessagesPage() {
     setLoading(false)
   }
 
+  async function handleDeleteConversation(
+    conversation: Conversation,
+  ) {
+    if (deletingConversationId) {
+      return
+    }
+
+    const visitorName =
+      conversation.visitor_name ||
+      "Visitante"
+
+    const confirmed =
+      window.confirm(
+        `Excluir conversa?\n\nDeseja realmente excluir a conversa de ${visitorName}?\n\nTodas as mensagens dessa conversa também serão excluídas.\n\nEssa ação não poderá ser desfeita.`,
+      )
+
+    if (!confirmed) {
+      return
+    }
+
+    setDeletingConversationId(
+      conversation.id,
+    )
+
+    try {
+      /*
+       * O .select("id") é importante.
+       *
+       * Assim não consideramos a operação
+       * concluída apenas porque o Supabase
+       * não retornou um erro.
+       *
+       * Precisamos receber o ID da linha
+       * que realmente foi excluída.
+       */
+      const { data, error } =
+        await supabase
+          .from("conversations")
+          .delete()
+          .eq(
+            "id",
+            conversation.id,
+          )
+          .select("id")
+
+      if (error) {
+        throw error
+      }
+
+      /*
+       * Se nenhuma linha voltou,
+       * significa que a conversa não foi
+       * realmente excluída do banco.
+       */
+      if (
+        !data ||
+        data.length === 0
+      ) {
+        throw new Error(
+          "A conversa não foi excluída do banco de dados.",
+        )
+      }
+
+      /*
+       * Somente depois da confirmação
+       * do Supabase removemos da tela.
+       */
+      setConversations(
+        (currentConversations) =>
+          currentConversations.filter(
+            (currentConversation) =>
+              currentConversation.id !==
+              conversation.id,
+          ),
+      )
+
+      console.log(
+        "Conversa excluída com sucesso:",
+        conversation.id,
+      )
+    } catch (error) {
+      console.error(
+        "Erro ao excluir conversa:",
+        error,
+      )
+
+      window.alert(
+        "Não foi possível excluir a conversa. Ela não foi removida do banco de dados.",
+      )
+    } finally {
+      setDeletingConversationId(
+        null,
+      )
+    }
+  }
+
   function formatDate(value: string) {
     return new Intl.DateTimeFormat(
       "pt-BR",
@@ -300,7 +401,9 @@ function MessagesPage() {
             </span>
 
             <div className="admin-messages-title-row">
-              <h1>Mensagens</h1>
+              <h1>
+                Mensagens
+              </h1>
 
               {waitingCount > 0 && (
                 <div className="admin-waiting-counter">
@@ -480,47 +583,62 @@ function MessagesPage() {
                     conversation,
                   )
 
+                const deleting =
+                  deletingConversationId ===
+                  conversation.id
+
                 return (
-                  <button
+                  <div
                     className={`admin-conversation-card ${
                       waiting
                         ? "waiting-human"
                         : ""
                     }`}
                     key={conversation.id}
-                    type="button"
-                    onClick={() =>
-                      navigate(
-                        `/admin/mensagens/${conversation.id}`,
-                      )
-                    }
                   >
 
-                    <div className="admin-conversation-main">
+                    <button
+                      type="button"
+                      className="admin-conversation-open"
+                      onClick={() =>
+                        navigate(
+                          `/admin/mensagens/${conversation.id}`,
+                        )
+                      }
+                      disabled={deleting}
+                    >
 
-                      <div className="admin-conversation-avatar">
-                        M
-                      </div>
+                      <div className="admin-conversation-main">
 
-                      <div>
-                        <strong>
-                          {conversation.visitor_name ||
-                            "Visitante"}
-                        </strong>
+                        <div className="admin-conversation-avatar">
+                          {conversation.visitor_name
+                            ?.trim()
+                            .charAt(0)
+                            .toUpperCase() ||
+                            "M"}
+                        </div>
 
-                        <span>
-                          {conversation.visitor_email ||
-                            "Sem e-mail informado"}
-                        </span>
+                        <div>
+                          <strong>
+                            {conversation.visitor_name ||
+                              "Visitante"}
+                          </strong>
 
-                        {waiting && (
-                          <span className="admin-human-request">
-                            Cliente solicitou atendimento humano
+                          <span>
+                            {conversation.visitor_email ||
+                              "Sem e-mail informado"}
                           </span>
-                        )}
+
+                          {waiting && (
+                            <span className="admin-human-request">
+                              Cliente solicitou atendimento humano
+                            </span>
+                          )}
+                        </div>
+
                       </div>
 
-                    </div>
+                    </button>
 
                     <div className="admin-conversation-meta">
 
@@ -542,9 +660,32 @@ function MessagesPage() {
                         )}
                       </small>
 
+                      <button
+                        type="button"
+                        className="admin-conversation-delete"
+                        disabled={
+                          deleting ||
+                          deletingConversationId !== null
+                        }
+                        onClick={() =>
+                          handleDeleteConversation(
+                            conversation,
+                          )
+                        }
+                        aria-label={`Excluir conversa de ${
+                          conversation.visitor_name ||
+                          "Visitante"
+                        }`}
+                        title="Excluir conversa"
+                      >
+                        {deleting
+                          ? "Excluindo..."
+                          : "🗑 Excluir"}
+                      </button>
+
                     </div>
 
-                  </button>
+                  </div>
                 )
               },
             )}
