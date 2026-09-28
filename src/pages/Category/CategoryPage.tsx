@@ -24,6 +24,7 @@ function CategoryPage() {
 
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
 
   const categoryName =
     categoryNames[slug ?? ""] ?? "Categoria"
@@ -46,6 +47,19 @@ function CategoryPage() {
     loadProducts()
   }, [slug])
 
+  const filteredProducts = products.filter((product) => {
+    const term = search.toLowerCase().trim()
+
+    if (!term) {
+      return true
+    }
+
+    return (
+      product.name.toLowerCase().includes(term) ||
+      product.brand?.toLowerCase().includes(term)
+    )
+  })
+
   return (
     <>
       <Header />
@@ -67,6 +81,44 @@ function CategoryPage() {
             Confira os produtos disponíveis nesta categoria.
           </p>
 
+          {!loading && products.length > 0 && (
+            <div className="category-search">
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                className="category-search-icon"
+              >
+                <path
+                  d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+
+              <input
+                type="search"
+                placeholder={`Buscar em ${categoryName}...`}
+                value={search}
+                onChange={(event) =>
+                  setSearch(event.target.value)
+                }
+              />
+
+              {search && (
+                <button
+                  type="button"
+                  className="category-search-clear"
+                  onClick={() => setSearch("")}
+                  aria-label="Limpar busca"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          )}
+
           {loading ? (
             <div className="category-status">
               Carregando produtos...
@@ -75,9 +127,13 @@ function CategoryPage() {
             <div className="category-status">
               Nenhum produto disponível nesta categoria.
             </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="category-status">
+              Nenhum produto encontrado para "{search}".
+            </div>
           ) : (
             <div className="category-products-grid">
-              {products.map((product) => (
+              {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}

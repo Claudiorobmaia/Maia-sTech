@@ -57,6 +57,83 @@
   font-size: 17px;
 }
 
+.category-search {
+  width: 100%;
+  max-width: 620px;
+
+  margin-top: 35px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 0 18px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+.category-search:focus-within {
+  border-color: var(--color-border-highlight);
+  box-shadow: var(--glow-primary);
+}
+
+.category-search-icon {
+  width: 20px;
+  height: 20px;
+
+  flex-shrink: 0;
+
+  color: var(--color-primary-light);
+}
+
+.category-search input {
+  width: 100%;
+
+  padding: 16px 0;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  color: var(--color-text);
+
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.category-search input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.category-search-clear {
+  padding: 4px;
+
+  border: 0;
+
+  background: transparent;
+
+  color: var(--color-text-secondary);
+
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition: color var(--transition);
+}
+
+.category-search-clear:hover {
+  color: var(--color-primary-light);
+}
+
 .category-products-placeholder {
   margin-top: 60px;
   padding: 50px;
@@ -67,24 +144,6 @@
   background: var(--color-surface);
 
   color: var(--color-text-secondary);
-}
-
-@media (max-width: 600px) {
-  .category-page {
-    padding: 50px 0;
-  }
-
-  .category-page-container {
-    width: min(100% - 24px, var(--container-width));
-  }
-
-  .category-page h1 {
-    letter-spacing: -2px;
-  }
-
-  .category-products-placeholder {
-    padding: 30px 20px;
-  }
 }
 
 .category-products-grid {
@@ -120,7 +179,27 @@
 }
 
 @media (max-width: 600px) {
+  .category-page {
+    padding: 50px 0;
+  }
+
+  .category-page-container {
+    width: min(100% - 24px, var(--container-width));
+  }
+
+  .category-page h1 {
+    letter-spacing: -2px;
+  }
+
+  .category-products-placeholder {
+    padding: 30px 20px;
+  }
+
   .category-products-grid {
     grid-template-columns: 1fr;
+  }
+
+  .category-search {
+    max-width: 100%;
   }
 }
